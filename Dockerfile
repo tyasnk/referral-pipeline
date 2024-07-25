@@ -25,10 +25,10 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt 
 
 # Copy the Python script into the container
-COPY main.py .
+COPY main.py pipeline.py ./
 
-# Copy the data directory into the container
-COPY data ./data
+# Copy the data directory into the container (use this if you are using local data)
+# COPY data ./data
 
 # Set the command to run the script
-CMD ["python3", "main.py"]
+ENTRYPOINT  ["python3", "main.py"]

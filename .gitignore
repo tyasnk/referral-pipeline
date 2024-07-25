@@ -2,5 +2,7 @@
 .python-version
 venv
 .ipynb_checkpoints
-data
 *.ipynb
+__pycache__
+result
+data
