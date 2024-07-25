@@ -1,0 +1,6 @@
+.env
+.python-version
+venv
+.ipynb_checkpoints
+data
+*.ipynb
