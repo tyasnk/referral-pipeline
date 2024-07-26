@@ -7,6 +7,7 @@ This project implements a data pipeline for processing referral data using Apach
 Before you begin, ensure you have met the following requirements:
 
 * Python 3.12
+* Apache Spark 3.4.x
 * Docker (for containerized execution)
 * AWS account with S3 access
 
@@ -38,8 +39,11 @@ Before you begin, ensure you have met the following requirements:
 
 ### Running Locally
 
-To run the pipeline locally, use the following command:
-
+To run the pipeline locally, you need to set the environment variable first
+```
+export $(xargs < .env)
+```
+then run the following command:
 ```
 python main.py -i [s3_source_data_bucket_prefix] -o [s3_output_bucket_path]
 ```
