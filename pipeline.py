@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Dict
 
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import SparkSession, DataFrame, Window
 from pyspark.sql.functions import (
     when,
     col,
@@ -10,6 +10,8 @@ from pyspark.sql.functions import (
     upper,
     trim,
     monotonically_increasing_id,
+    rank,
+    desc,
 )
 from pyspark.sql.types import DoubleType, IntegerType, BooleanType
 from pyspark import SparkConf
@@ -34,7 +36,7 @@ class ReferralDataPipeline:
         logger.addHandler(handler)
         return logger
 
-    def _create_spark_session(self):
+    def _create_spark_session(self) -> SparkSession:
         self.logger.info("Creating Spark session")
         conf = SparkConf()
         conf.set(
@@ -104,6 +106,9 @@ class ReferralDataPipeline:
                 df = df.withColumn(
                     column, when(col(column) == "", None).otherwise(col(column))
                 )
+                df = df.withColumn(
+                    column, when(col(column) == "null", None).otherwise(col(column))
+                )
             elif data_type == "double":
                 df = df.withColumn(column, col(column).cast(DoubleType()))
             elif data_type == "int":
@@ -116,10 +121,26 @@ class ReferralDataPipeline:
                 df = df.withColumn(column, col(column).cast(BooleanType()))
 
         # Specific cleaning for each dataframe
+        # capitalize homeclub
         if name == "user_logs":
             df = df.withColumn("homeclub", upper(col("homeclub")))
+        # drop duplicate lead log by lead id
         elif name == "lead_log":
             df = df.dropDuplicates(["lead_id"])
+        # drop duplicate user_referral_logs. keep the latest data
+        elif name == "user_referral_logs":
+            df = (
+                df.withColumn(
+                    "rank",
+                    rank().over(
+                        Window.partitionBy("user_referral_id").orderBy(
+                            desc("created_at")
+                        )
+                    ),
+                )
+                .filter("rank = 1")
+                .drop("rank")
+            )
 
         return df
 
@@ -136,7 +157,6 @@ class ReferralDataPipeline:
             SELECT 
                 ur.*,
                 url.is_reward_granted,
-                url.created_at as url_created_at,
                 ul.name as referrer_name,
                 ul.phone_number as referrer_phone_number,
                 ul.homeclub as referrer_homeclub,
@@ -154,7 +174,7 @@ class ReferralDataPipeline:
                 from_utc_timestamp(ur.updated_at, 'Asia/Jakarta') as updated_at_local,
                 from_utc_timestamp(url.created_at, 'Asia/Jakarta') as reward_granted_at_local
             FROM user_referrals ur
-            LEFT JOIN user_referral_logs url ON ur.referral_id = url.user_referral_id AND ur.updated_at = url.created_at
+            LEFT JOIN user_referral_logs url ON ur.referral_id = url.user_referral_id
             LEFT JOIN user_logs ul ON ur.referrer_id = ul.user_id
             LEFT JOIN user_referral_statuses urs ON ur.user_referral_status_id = urs.id
             LEFT JOIN referral_rewards rr ON ur.referral_reward_id = rr.id
@@ -214,7 +234,7 @@ class ReferralDataPipeline:
                         ((reward_value IS NULL) AND (transaction_id IS NOT NULL) AND (transaction_status = 'Paid') AND (transaction_at_local > referral_at_local)) OR
                         ((referral_status = 'Berhasil') AND (reward_value IS NULL OR reward_value = 0)) OR
                         (transaction_at_local < referral_at_local) OR
-                        ((reward_value > 0) AND (is_reward_granted IS NULL))
+                        ((reward_value > 0) AND (is_reward_granted IS NULL OR is_reward_granted = FALSE))
                     ) THEN FALSE
                     ELSE NULL
                 END as is_business_logic_valid
@@ -231,8 +251,8 @@ class ReferralDataPipeline:
 
     def run(
         self,
-        input_data_prefix_path: str = "data",
-        output_path: str = "referral_system_analysis",
+        input_data_prefix_path: str,
+        output_path: str,
     ):
         self.logger.info("Starting Referral Data Pipeline")
         try:

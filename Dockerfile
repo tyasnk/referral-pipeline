@@ -1,6 +1,7 @@
 # Use Python 3.9 as the base image
 FROM ubuntu:latest
 
+# Install required dependencies
 RUN apt-get update --fix-missing && \
     apt-get install -y software-properties-common &&\
     add-apt-repository ppa:openjdk-r/ppa && \
@@ -27,7 +28,7 @@ RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 # Copy the Python script into the container
 COPY main.py pipeline.py ./
 
-# Copy the data directory into the container (use this if you are using local data)
+# Copy the data directory into the container (uncomment this if you are using local data)
 # COPY data ./data
 
 # Set the command to run the script
