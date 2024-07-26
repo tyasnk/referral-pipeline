@@ -88,10 +88,10 @@ python main.py -i s3a://referral-pipeline/data/raw -o s3a://referral-pipeline/da
 | referral_status | String | Current status of the referral (e.g., 'Berhasil', 'Menunggu', 'Tidak Berhasil') | Menunggu |
 | num_reward_days | Integer | Number of days granted as a reward for the referral | 10 |
 | transaction_id | String | Unique identifier of the associated transaction | 62afd56341d234457415c97c9c866aa9 |
-| transaction_status | String | Status of the associated transaction (e.g., 'PAID') | PAID |
+| transaction_status | String | Status of the associated transaction (e.g., 'Paid') | Paid |
 | transaction_at | Timestamp | Local timestamp when the transaction occurred | 2024-05-03T16:00:59.409+07:00 |
 | transaction_location | String | Location where the transaction took place | MAMPANG |
-| transaction_type | String | Type of the transaction (e.g., 'NEW') | NEW |
+| transaction_type | String | Type of the transaction (e.g., 'New') | New |
 | updated_at | Timestamp | Local timestamp when the referral was last updated | 2024-05-13T17:30:51.000+07:00 |
-| reward_granted_at | Timestamp | Local timestamp when the reward was granted (null if not granted) | 2024-05-01T19:17:31.000+07:00
+| reward_granted_at | Timestamp | Local timestamp when the reward was granted (null if not granted) | 2024-05-01T19:17:31.000+07:00 |
 | is_business_logic_valid | Boolean | Indicates whether the referral meets all business logic criteria | true |
