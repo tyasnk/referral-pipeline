@@ -1,4 +1,4 @@
-# Use Python 3.9 as the base image
+# Use Ubuntu as the base image
 FROM ubuntu:latest
 
 # Install required dependencies
@@ -31,5 +31,5 @@ COPY main.py pipeline.py ./
 # Copy the data directory into the container (uncomment this if you are using local data)
 # COPY data ./data
 
-# Set the command to run the script
+# Set the entrypoint
 ENTRYPOINT  ["python3", "main.py"]
